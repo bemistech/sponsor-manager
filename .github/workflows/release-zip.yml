@@ -1,21 +1,38 @@
-name: Attach plugin zip
+name: Publish Sponsor Manager
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to upload
+        required: true
+        default: "1.5.2"
 
 permissions:
   contents: write
 
 jobs:
-  attach-zip:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
-      - name: Build installable plugin zip
+      - name: Build zip and metadata
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          VERSION="${RELEASE_TAG#v}"
+          HEADER=$(grep -m1 -E '^[[:space:]*]*Version:' sponsor-manager.php | sed -E 's/.*Version:[[:space:]]*//' | tr -d '\r[:space:]')
+          if [ "$HEADER" != "$VERSION" ]; then
+            echo "::error::sponsor-manager.php Version ($HEADER) does not match release tag ($VERSION)"
+            exit 1
+          fi
           mkdir -p /tmp/dist
           rsync -a \
             --exclude='.git/' \
@@ -25,8 +42,27 @@ jobs:
             ./ /tmp/dist/sponsor-manager/
           cd /tmp/dist
           zip -r sponsor-manager.zip sponsor-manager
+          cp sponsor-manager.zip "sponsor-manager-$VERSION.zip"
+          cat > sponsor-manager.json <<EOF
+          {
+            "version": "$VERSION",
+            "download_url": "https://updates.bemistech.com/sponsor-manager/sponsor-manager-$VERSION.zip",
+            "details_url": "https://github.com/${REPOSITORY}/releases/tag/${RELEASE_TAG}"
+          }
+          EOF
 
       - name: Upload zip to the GitHub release
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: /tmp/dist/sponsor-manager.zip
+
+      - name: Upload to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          npx --yes wrangler@4 r2 object put "w7-p7/sponsor-manager/sponsor-manager-$VERSION.zip" --file "/tmp/dist/sponsor-manager-$VERSION.zip" --remote --content-type application/zip --cache-control "public, max-age=31536000, immutable"
+          npx --yes wrangler@4 r2 object put "w7-p7/sponsor-manager.json" --file /tmp/dist/sponsor-manager.json --remote --content-type application/json --cache-control "public, max-age=300"

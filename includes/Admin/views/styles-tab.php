@@ -33,7 +33,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		.sponsor-manager-styles__preview-card {
 			margin-top: 16px;
 			color: #1d2327;
+			--tsq-radius: 16px;
+			--tsq-shadow-color: #102441;
+			--tsq-shadow-hover-color: #1763df;
+			--tsq-shadow: 5px 5px 0 0 var(--tsq-shadow-color);
+			--tsq-shadow-hover: 7px 7px 0 0 var(--tsq-shadow-hover-color);
 		}
+		.sponsor-manager-styles__custom[hidden] { display: none; }
 		.sponsor-manager-styles__preview-card .sponsor-manager-grid__item,
 		.sponsor-manager-styles__preview-card .sponsor-manager-grid__item:hover,
 		.sponsor-manager-styles__preview-card .sponsor-manager-grid__item:focus {
@@ -118,6 +124,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php wp_nonce_field( 'sponsor_manager_save_styles' ); ?>
 			<table class="form-table" role="presentation">
 				<tr>
+					<th scope="row"><?php esc_html_e( 'Theme borders', 'sponsor-manager' ); ?></th>
+					<td>
+						<input type="hidden" name="sponsor_styles[follow_theme]" value="0" />
+						<label>
+							<input name="sponsor_styles[follow_theme]" id="sponsor-style-follow-theme" type="checkbox" value="1" <?php checked( ! empty( $styles['follow_theme'] ) ); ?> />
+							<?php esc_html_e( 'Use the active theme’s border radius, color, and shadow', 'sponsor-manager' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Town Square cards use a 16px corner and a solid offset shadow. Uncheck this to set a custom border.', 'sponsor-manager' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<div class="sponsor-manager-styles__custom" id="sponsor-style-custom" <?php echo empty( $styles['follow_theme'] ) ? '' : 'hidden'; ?>>
+			<table class="form-table" role="presentation">
+				<tr>
 					<th scope="row"><label for="sponsor-style-radius"><?php esc_html_e( 'Border radius', 'sponsor-manager' ); ?></label></th>
 					<td>
 						<input name="sponsor_styles[border_radius]" id="sponsor-style-radius" type="number" min="0" max="32" value="<?php echo esc_attr( (string) $styles['border_radius'] ); ?>" class="small-text" />
@@ -174,6 +194,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</td>
 				</tr>
 			</table>
+			</div>
 			<?php submit_button( __( 'Save styles', 'sponsor-manager' ), 'primary', 'sponsor_manager_save_styles' ); ?>
 		</form>
 
@@ -194,6 +215,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			return;
 		}
 
+		var follow = document.getElementById('sponsor-style-follow-theme');
+		var custom = document.getElementById('sponsor-style-custom');
 		var radius = document.getElementById('sponsor-style-radius');
 		var width = document.getElementById('sponsor-style-width');
 		var shadow = document.getElementById('sponsor-style-shadow');
@@ -233,28 +256,58 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			var x = parseInt(offsetX.value, 10) || 0;
 			var y = parseInt(offsetY.value, 10) || 0;
-			if (isHover) {
-				x += x >= 0 ? 1 : -1;
-				y += y >= 0 ? 1 : -1;
+			var blurValue = parseInt(blur.value, 10) || 0;
+			if (isHover && blurValue === 0) {
+				x += x >= 0 ? 2 : -2;
+				y += y >= 0 ? 2 : -2;
+			} else if (isHover) {
+				y += y >= 0 ? 4 : -4;
 			}
-			return x + 'px ' + y + 'px ' + (parseInt(blur.value, 10) || 0) + 'px ' + (parseInt(spread.value, 10) || 0) + 'px ' + resolveColor('sponsor-style-shadow-color');
+			var color = resolveColor('sponsor-style-shadow-color');
+			if (!color || color === 'currentColor') {
+				color = blurValue > 0 ? '#00000061' : (isHover ? '#1763df' : '#102441');
+			}
+			return x + 'px ' + y + 'px ' + blurValue + 'px ' + (parseInt(spread.value, 10) || 0) + 'px ' + color;
 		}
 
 		function updatePreview() {
+			if (custom) {
+				custom.hidden = follow && follow.checked;
+			}
+			if (follow && follow.checked) {
+				preview.style.setProperty('--sponsor-ad-radius', 'var(--tsq-radius, 16px)');
+				preview.style.setProperty('--sponsor-ad-border-width', '2px');
+				preview.style.setProperty('--sponsor-ad-border-color', 'var(--tsq-shadow-color, #102441)');
+				preview.style.setProperty('--sponsor-ad-border-hover', 'var(--tsq-shadow-hover-color, #1763df)');
+				preview.style.setProperty('--sponsor-ad-shadow', 'var(--tsq-shadow, 5px 5px 0 0 #102441)');
+				preview.style.setProperty('--sponsor-ad-shadow-hover', 'var(--tsq-shadow-hover, 7px 7px 0 0 #1763df)');
+				var themed = preview.querySelector('.sponsor-manager-grid__item');
+				if (themed) {
+					themed.style.borderRadius = '';
+					themed.style.borderWidth = '';
+					themed.style.borderStyle = '';
+					themed.style.borderColor = '';
+					themed.style.boxShadow = '';
+				}
+				return;
+			}
 			var x = parseInt(offsetX.value, 10) || 0;
 			var y = parseInt(offsetY.value, 10) || 0;
+			var blurValue = parseInt(blur.value, 10) || 0;
 			var radiusValue = (radius.value || 0) + 'px';
 			var widthValue = (width.value || 0) + 'px';
 			var borderColor = resolveColor('sponsor-style-border-color');
 			var shadowValue = buildShadow(false);
 			var item = preview.querySelector('.sponsor-manager-grid__item');
+			var hoverShift = 'none';
 
 			preview.style.setProperty('--sponsor-ad-radius', radiusValue);
 			preview.style.setProperty('--sponsor-ad-border-width', widthValue);
 			preview.style.setProperty('--sponsor-ad-border-color', borderColor);
+			preview.style.setProperty('--sponsor-ad-border-hover', (!borderColor || borderColor === 'currentColor') ? '#1763df' : borderColor);
 			preview.style.setProperty('--sponsor-ad-shadow', shadowValue);
 			preview.style.setProperty('--sponsor-ad-shadow-hover', buildShadow(true));
-			preview.style.setProperty('--sponsor-ad-hover-shift', shadow.checked ? 'translate(' + (x >= 0 ? -1 : 1) + 'px, ' + (y >= 0 ? -1 : 1) + 'px)' : 'none');
+			preview.style.setProperty('--sponsor-ad-hover-shift', hoverShift);
 
 			if (item) {
 				item.style.borderRadius = radiusValue;
@@ -379,6 +432,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		document.querySelectorAll('[data-color-control]').forEach(bindColorControl);
 
+		if (follow) {
+			follow.addEventListener('change', updatePreview);
+		}
 		[radius, width, shadow, offsetX, offsetY, blur, spread].forEach(function (field) {
 			if (field) {
 				field.addEventListener('input', updatePreview);

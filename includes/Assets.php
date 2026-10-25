@@ -80,7 +80,7 @@ class Assets {
 	 * Register an empty handle and attach :root custom properties.
 	 */
 	public static function enqueue_global_styles() {
-		$css = ':root{' . Repository::to_css( Repository::get() ) . ';}';
+		$css = ':where(.wp-site-blocks,.editor-styles-wrapper){' . Repository::to_css( Repository::get() ) . ';}';
 
 		wp_register_style( 'sponsor-manager-global', false, array(), Constants::VERSION );
 		wp_enqueue_style( 'sponsor-manager-global' );

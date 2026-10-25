@@ -36,7 +36,7 @@
 		},
 		"borderRadius": {
 			"type": "number",
-			"default": 6
+			"default": 16
 		},
 		"borderWidth": {
 			"type": "number",
@@ -56,11 +56,11 @@
 		},
 		"shadowOffsetX": {
 			"type": "number",
-			"default": 2
+			"default": 5
 		},
 		"shadowOffsetY": {
 			"type": "number",
-			"default": 2
+			"default": 5
 		},
 		"shadowBlur": {
 			"type": "number",

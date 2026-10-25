@@ -37,20 +37,20 @@
 	aspect-ratio: 16 / 9;
 	min-height: 24px;
 	text-decoration: none;
-	border: var(--sponsor-ad-border-width, 2px) solid var(--sponsor-ad-border-color, currentColor);
-	border-color: var(--sponsor-ad-border-color, currentColor);
-	border-radius: var(--sponsor-ad-radius, 6px);
+	border: var(--sponsor-ad-border-width, 2px) solid var(--sponsor-ad-border-color, var(--tsq-shadow-color, var(--yst-shadow-color, var(--wp--custom--shadow-color, #102441))));
+	border-color: var(--sponsor-ad-border-color, var(--tsq-shadow-color, var(--yst-shadow-color, var(--wp--custom--shadow-color, #102441))));
+	border-radius: var(--sponsor-ad-radius, var(--tsq-radius, var(--yst-radius, var(--wp--custom--radius, 16px))));
 	overflow: hidden;
-	box-shadow: var(--sponsor-ad-shadow, 2px 2px 0 currentColor);
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	box-shadow: var(--sponsor-ad-shadow, var(--tsq-shadow, var(--yst-shadow, var(--wp--custom--shadow, 5px 5px 0 0 #102441))));
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sponsor-manager-grid a.sponsor-manager-grid__item:hover,
 .sponsor-manager-grid a.sponsor-manager-grid__item:focus {
 	text-decoration: none;
-	border-color: var(--sponsor-ad-border-color, currentColor);
-	transform: var(--sponsor-ad-hover-shift, translate(-1px, -1px));
-	box-shadow: var(--sponsor-ad-shadow-hover, 3px 3px 0 currentColor);
+	border-color: var(--sponsor-ad-border-hover, var(--tsq-shadow-hover-color, var(--yst-shadow-hover-color, var(--wp--custom--shadow-hover-color, #1763df))));
+	transform: none;
+	box-shadow: var(--sponsor-ad-shadow-hover, var(--tsq-shadow-hover, var(--yst-shadow-hover, var(--wp--custom--shadow-hover, 7px 7px 0 0 #1763df))));
 }
 
 .sponsor-manager-grid a.sponsor-manager-grid__item:focus-visible {

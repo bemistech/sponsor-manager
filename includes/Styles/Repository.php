@@ -25,13 +25,14 @@ class Repository {
 	 */
 	public static function defaults() {
 		return array(
-			'border_radius'   => 6,
+			'follow_theme'    => true,
+			'border_radius'   => 16,
 			'border_width'    => 2,
 			'border_color'    => '',
 			'show_shadow'     => true,
 			'shadow_color'    => '',
-			'shadow_offset_x' => 2,
-			'shadow_offset_y' => 2,
+			'shadow_offset_x' => 5,
+			'shadow_offset_y' => 5,
 			'shadow_blur'     => 0,
 			'shadow_spread'   => 0,
 		);
@@ -152,6 +153,7 @@ class Repository {
 		$input    = is_array( $input ) ? $input : array();
 
 		return array(
+			'follow_theme'    => ! empty( $input['follow_theme'] ),
 			'border_radius'   => max( 0, min( 32, (int) ( $input['border_radius'] ?? $defaults['border_radius'] ) ) ),
 			'border_width'    => max( 0, min( 8, (int) ( $input['border_width'] ?? $defaults['border_width'] ) ) ),
 			'border_color'    => self::sanitize_color( $input['border_color'] ?? '' ),
@@ -162,6 +164,24 @@ class Repository {
 			'shadow_blur'     => max( 0, min( 60, (int) ( $input['shadow_blur'] ?? $defaults['shadow_blur'] ) ) ),
 			'shadow_spread'   => max( -20, min( 40, (int) ( $input['shadow_spread'] ?? $defaults['shadow_spread'] ) ) ),
 		);
+	}
+
+	/**
+	 * Nested custom properties so an active theme can supply the border.
+	 *
+	 * Town Square, the previous YeahSeven names, then theme.json custom values.
+	 *
+	 * @param array  $names    Custom property names, most specific first.
+	 * @param string $fallback Literal CSS used when no theme token exists.
+	 * @return string
+	 */
+	public static function theme_chain( array $names, $fallback ) {
+		$css = $fallback;
+		foreach ( array_reverse( $names ) as $name ) {
+			$css = 'var(' . $name . ',' . $css . ')';
+		}
+
+		return $css;
 	}
 
 	/**
@@ -177,14 +197,36 @@ class Repository {
 
 		$x = (int) $styles['shadow_offset_x'];
 		$y = (int) $styles['shadow_offset_y'];
-		if ( $hover ) {
-			$x += ( $x >= 0 ) ? 1 : -1;
-			$y += ( $y >= 0 ) ? 1 : -1;
+		$blur = (int) $styles['shadow_blur'];
+		if ( $hover && 0 === $blur ) {
+			$x += ( $x >= 0 ) ? 2 : -2;
+			$y += ( $y >= 0 ) ? 2 : -2;
+		} elseif ( $hover ) {
+			$y += ( $y >= 0 ) ? 4 : -4;
 		}
 
-		$color = $for_preview
-			? self::preview_color( $styles['shadow_color'] ?? '' )
-			: self::color_to_css( $styles['shadow_color'] ?? '' );
+		$custom_color = self::sanitize_color( $styles['shadow_color'] ?? '' );
+		$shared_rest  = 5 === (int) $styles['shadow_offset_x'] && 5 === (int) $styles['shadow_offset_y'] && 0 === $blur && 0 === (int) $styles['shadow_spread'] && '' === $custom_color;
+		if ( $shared_rest && ! $for_preview ) {
+			return $hover
+				? self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '7px 7px 0 0 #1763df' )
+				: self::theme_chain( array( '--tsq-shadow', '--yst-shadow', '--wp--custom--shadow' ), '5px 5px 0 0 #102441' );
+		}
+
+		$fallback = $hover
+			? self::theme_chain( array( '--tsq-shadow-hover-color', '--yst-shadow-hover-color', '--wp--custom--shadow-hover-color' ), '#1763df' )
+			: self::theme_chain( array( '--tsq-shadow-color', '--yst-shadow-color', '--wp--custom--shadow-color' ), '#102441' );
+		if ( $blur > 0 && '' === $custom_color ) {
+			$fallback = '#00000061';
+		}
+		if ( $for_preview ) {
+			$color = self::preview_color( $styles['shadow_color'] ?? '' );
+			if ( '' === $color || 'currentColor' === $color ) {
+				$color = ( 0 === $blur ) ? ( $hover ? '#1763df' : '#102441' ) : '#00000061';
+			}
+		} else {
+			$color = self::color_to_css( $styles['shadow_color'] ?? '', $fallback );
+		}
 
 		return sprintf(
 			'%dpx %dpx %dpx %dpx %s',
@@ -243,19 +285,49 @@ class Repository {
 	 */
 	public static function to_css( array $styles, $for_preview = false ) {
 		$styles = self::sanitize( $styles );
+		$defaults = self::defaults();
+		if ( ! empty( $styles['follow_theme'] ) && ! $for_preview ) {
+			$vars = array(
+				'--sponsor-ad-radius'       => self::theme_chain( array( '--tsq-radius', '--yst-radius', '--wp--custom--radius' ), '16px' ),
+				'--sponsor-ad-border-width' => $defaults['border_width'] . 'px',
+				'--sponsor-ad-border-color' => self::theme_chain( array( '--tsq-shadow-color', '--yst-shadow-color', '--wp--custom--shadow-color' ), '#102441' ),
+				'--sponsor-ad-border-hover' => self::theme_chain( array( '--tsq-shadow-hover-color', '--yst-shadow-hover-color', '--wp--custom--shadow-hover-color' ), '#1763df' ),
+				'--sponsor-ad-shadow'       => self::theme_chain( array( '--tsq-shadow', '--yst-shadow', '--wp--custom--shadow' ), '5px 5px 0 0 #102441' ),
+				'--sponsor-ad-shadow-hover' => self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '7px 7px 0 0 #1763df' ),
+				'--sponsor-ad-hover-shift'  => 'none',
+			);
+			$parts = array();
+			foreach ( $vars as $property => $value ) {
+				$parts[] = $property . ':' . $value;
+			}
 
-		$shift_x = (int) $styles['shadow_offset_x'] >= 0 ? -1 : 1;
-		$shift_y = (int) $styles['shadow_offset_y'] >= 0 ? -1 : 1;
+			return implode( ';', $parts );
+		}
+
+		$border = self::sanitize_color( $styles['border_color'] );
+		$theme_border = self::theme_chain( array( '--tsq-shadow-color', '--yst-shadow-color', '--wp--custom--shadow-color' ), '#102441' );
+		$theme_border_hover = self::theme_chain( array( '--tsq-shadow-hover-color', '--yst-shadow-hover-color', '--wp--custom--shadow-hover-color' ), '#1763df' );
+		$border_css = $for_preview
+			? self::preview_color( $styles['border_color'] )
+			: self::color_to_css( $styles['border_color'], $theme_border );
+		if ( $for_preview && ( '' === $border_css || 'currentColor' === $border_css ) ) {
+			$border_css = '#102441';
+		}
+		$border_hover = '' === $border
+			? ( $for_preview ? '#1763df' : $theme_border_hover )
+			: $border_css;
+		$radius = ( ! $for_preview && (int) $styles['border_radius'] === (int) $defaults['border_radius'] )
+			? self::theme_chain( array( '--tsq-radius', '--yst-radius', '--wp--custom--radius' ), '16px' )
+			: $styles['border_radius'] . 'px';
 
 		$vars = array(
-			'--sponsor-ad-radius'       => $styles['border_radius'] . 'px',
-			'--sponsor-ad-border-width' => $styles['border_width'] . 'px',
-			'--sponsor-ad-border-color' => $for_preview
-				? self::preview_color( $styles['border_color'] )
-				: self::color_to_css( $styles['border_color'] ),
-			'--sponsor-ad-shadow'       => self::shadow_css( $styles, false, $for_preview ),
-			'--sponsor-ad-shadow-hover' => self::shadow_css( $styles, true, $for_preview ),
-			'--sponsor-ad-hover-shift'  => $styles['show_shadow'] ? sprintf( 'translate(%dpx, %dpx)', $shift_x, $shift_y ) : 'none',
+			'--sponsor-ad-radius'         => $radius,
+			'--sponsor-ad-border-width'   => $styles['border_width'] . 'px',
+			'--sponsor-ad-border-color'   => $border_css,
+			'--sponsor-ad-border-hover'   => $border_hover,
+			'--sponsor-ad-shadow'         => self::shadow_css( $styles, false, $for_preview ),
+			'--sponsor-ad-shadow-hover'   => self::shadow_css( $styles, true, $for_preview ),
+			'--sponsor-ad-hover-shift'    => 'none',
 		);
 
 		$parts = array();

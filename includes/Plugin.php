@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use SponsorManager\Acf\Handoff as AcfHandoff;
 use SponsorManager\Admin\BookingMetaBox;
 use SponsorManager\Admin\Dashboard;
+use SponsorManager\Admin\LicensePage;
 use SponsorManager\Admin\ListTable;
 use SponsorManager\Admin\Menu;
 use SponsorManager\Admin\StylesPage;
@@ -61,6 +62,7 @@ class Plugin {
 		ListTable::register();
 		Dashboard::register();
 		StylesPage::register();
+		LicensePage::register();
 		BookingMetaBox::register();
 	}
 }

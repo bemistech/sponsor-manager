@@ -111,6 +111,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					<ServerSideRender
 						block={ metadata.name }
 						attributes={ attributes }
+						httpMethod="POST"
 						skipBlockSupportAttributes
 					/>
 				</Disabled>

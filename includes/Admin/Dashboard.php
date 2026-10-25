@@ -84,7 +84,10 @@ class Dashboard {
 		}
 
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! in_array( $tab, array( 'overview', 'ads', 'placements', 'styles', 'how-to-use' ), true ) ) {
+		if ( ! in_array( $tab, array( 'overview', 'ads', 'placements', 'styles', 'license', 'how-to-use' ), true ) ) {
+			$tab = 'overview';
+		}
+		if ( 'license' === $tab && ! current_user_can( 'manage_options' ) ) {
 			$tab = 'overview';
 		}
 
@@ -96,6 +99,9 @@ class Dashboard {
 			'styles'     => __( 'Styles', 'sponsor-manager' ),
 			'how-to-use' => __( 'How to Use', 'sponsor-manager' ),
 		);
+		if ( current_user_can( 'manage_options' ) ) {
+			$tabs['license'] = __( 'License', 'sponsor-manager' );
+		}
 
 		echo '<div class="wrap">';
 		echo '<h1>' . esc_html__( 'Sponsor Manager', 'sponsor-manager' ) . '</h1>';
@@ -116,6 +122,8 @@ class Dashboard {
 			self::render_how_to_use();
 		} elseif ( 'styles' === $tab ) {
 			StylesPage::render();
+		} elseif ( 'license' === $tab ) {
+			LicensePage::render();
 		} elseif ( 'ads' === $tab ) {
 			sponsor_manager_render_ads_tab();
 		} elseif ( 'placements' === $tab ) {
