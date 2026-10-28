@@ -2,7 +2,7 @@
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
   "name": "sponsor-manager/grid",
-  "version": "1.5.0",
+  "version": "1.5.3",
   "title": "Sponsors",
   "category": "widgets",
   "icon": "megaphone",
@@ -49,7 +49,7 @@
     },
     "borderWidth": {
       "type": "number",
-      "default": 2
+      "default": 0
     },
     "showShadow": {
       "type": "boolean",

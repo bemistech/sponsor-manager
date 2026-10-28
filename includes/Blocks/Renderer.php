@@ -156,9 +156,12 @@ class Renderer {
 			array(
 				'class'                    => $classes,
 				'style'                    => $style,
+				'role'                     => 'region',
+				'aria-label'               => __( 'Sponsors', 'sponsor-manager' ),
 				'data-sponsor-rotate'      => $can_rotate ? '1' : '0',
 				'data-sponsor-initial-ms'  => '120000',
 				'data-sponsor-interval-ms' => '120000',
+				'data-sponsor-new-tab'     => __( '(opens in a new tab)', 'sponsor-manager' ),
 			)
 		);
 
@@ -191,6 +194,11 @@ class Renderer {
 	public static function ad_markup( array $ad, $layout = 'grid' ) {
 		unset( $layout );
 
+		$title = isset( $ad['title'] ) ? trim( (string) $ad['title'] ) : '';
+		if ( '' === $title ) {
+			$title = __( 'Sponsor', 'sponsor-manager' );
+		}
+
 		ob_start();
 		?>
 		<a
@@ -203,14 +211,14 @@ class Renderer {
 				<img
 					class="sponsor-manager-grid__item-image"
 					src="<?php echo esc_url( $ad['image'] ); ?>"
-					alt="<?php echo esc_attr( $ad['title'] ); ?>"
+					alt="<?php echo esc_attr( $title ); ?>"
 					width="16"
 					height="9"
 					loading="lazy"
 					decoding="async"
 				/>
 			<?php else : ?>
-				<span class="sponsor-manager-grid__item-fallback"><?php echo esc_html( $ad['title'] ); ?></span>
+				<span class="sponsor-manager-grid__item-fallback"><?php echo esc_html( $title ); ?></span>
 			<?php endif; ?>
 			<span class="screen-reader-text"><?php esc_html_e( '(opens in a new tab)', 'sponsor-manager' ); ?></span>
 		</a>
@@ -256,9 +264,10 @@ class Renderer {
 	public static function ads_for_client( array $ads ) {
 		return array_map(
 			function ( $ad ) {
+				$title = isset( $ad['title'] ) ? trim( (string) $ad['title'] ) : '';
 				return array(
 					'id'       => (int) $ad['id'],
-					'title'    => $ad['title'],
+					'title'    => $title,
 					'image'    => $ad['image'],
 					'link'     => $ad['link'],
 					'priority' => (int) $ad['priority'],

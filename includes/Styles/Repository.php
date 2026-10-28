@@ -27,7 +27,7 @@ class Repository {
 		return array(
 			'follow_theme'    => true,
 			'border_radius'   => 16,
-			'border_width'    => 2,
+			'border_width'    => 0,
 			'border_color'    => '',
 			'show_shadow'     => true,
 			'shadow_color'    => '',
@@ -199,8 +199,7 @@ class Repository {
 		$y = (int) $styles['shadow_offset_y'];
 		$blur = (int) $styles['shadow_blur'];
 		if ( $hover && 0 === $blur ) {
-			$x += ( $x >= 0 ) ? 2 : -2;
-			$y += ( $y >= 0 ) ? 2 : -2;
+			return '0 0 0 2px #000';
 		} elseif ( $hover ) {
 			$y += ( $y >= 0 ) ? 4 : -4;
 		}
@@ -209,7 +208,7 @@ class Repository {
 		$shared_rest  = 5 === (int) $styles['shadow_offset_x'] && 5 === (int) $styles['shadow_offset_y'] && 0 === $blur && 0 === (int) $styles['shadow_spread'] && '' === $custom_color;
 		if ( $shared_rest && ! $for_preview ) {
 			return $hover
-				? self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '7px 7px 0 0 #1763df' )
+				? self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '0 0 0 2px #000' )
 				: self::theme_chain( array( '--tsq-shadow', '--yst-shadow', '--wp--custom--shadow' ), '5px 5px 0 0 #102441' );
 		}
 
@@ -293,7 +292,7 @@ class Repository {
 				'--sponsor-ad-border-color' => self::theme_chain( array( '--tsq-shadow-color', '--yst-shadow-color', '--wp--custom--shadow-color' ), '#102441' ),
 				'--sponsor-ad-border-hover' => self::theme_chain( array( '--tsq-shadow-hover-color', '--yst-shadow-hover-color', '--wp--custom--shadow-hover-color' ), '#1763df' ),
 				'--sponsor-ad-shadow'       => self::theme_chain( array( '--tsq-shadow', '--yst-shadow', '--wp--custom--shadow' ), '5px 5px 0 0 #102441' ),
-				'--sponsor-ad-shadow-hover' => self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '7px 7px 0 0 #1763df' ),
+				'--sponsor-ad-shadow-hover' => self::theme_chain( array( '--tsq-shadow-hover', '--yst-shadow-hover', '--wp--custom--shadow-hover' ), '0 0 0 2px #000' ),
 				'--sponsor-ad-hover-shift'  => 'none',
 			);
 			$parts = array();

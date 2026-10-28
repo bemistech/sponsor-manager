@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Constants {
 
-	public const VERSION          = '1.5.2';
+	public const VERSION          = '1.5.3';
 	public const POST_TYPE        = 'sponsor_ad';
 	public const TAXONOMY         = 'sponsor_placement';
 	public const PAUSE_META       = 'expired';

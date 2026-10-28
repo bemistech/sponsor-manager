@@ -1,5 +1,19 @@
 .sponsor-manager-grid {
 	width: 100%;
+	position: relative;
+}
+
+.sponsor-manager-grid .screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
 }
 
 .sponsor-manager-grid__slots {
@@ -37,7 +51,7 @@
 	aspect-ratio: 16 / 9;
 	min-height: 24px;
 	text-decoration: none;
-	border: var(--sponsor-ad-border-width, 2px) solid var(--sponsor-ad-border-color, var(--tsq-shadow-color, var(--yst-shadow-color, var(--wp--custom--shadow-color, #102441))));
+	border: var(--sponsor-ad-border-width, 0) solid var(--sponsor-ad-border-color, var(--tsq-shadow-color, var(--yst-shadow-color, var(--wp--custom--shadow-color, #102441))));
 	border-color: var(--sponsor-ad-border-color, var(--tsq-shadow-color, var(--yst-shadow-color, var(--wp--custom--shadow-color, #102441))));
 	border-radius: var(--sponsor-ad-radius, var(--tsq-radius, var(--yst-radius, var(--wp--custom--radius, 16px))));
 	overflow: hidden;
@@ -46,15 +60,14 @@
 }
 
 .sponsor-manager-grid a.sponsor-manager-grid__item:hover,
-.sponsor-manager-grid a.sponsor-manager-grid__item:focus {
+.sponsor-manager-grid a.sponsor-manager-grid__item:focus-visible {
 	text-decoration: none;
-	border-color: var(--sponsor-ad-border-hover, var(--tsq-shadow-hover-color, var(--yst-shadow-hover-color, var(--wp--custom--shadow-hover-color, #1763df))));
 	transform: none;
-	box-shadow: var(--sponsor-ad-shadow-hover, var(--tsq-shadow-hover, var(--yst-shadow-hover, var(--wp--custom--shadow-hover, 7px 7px 0 0 #1763df))));
+	box-shadow: var(--sponsor-ad-shadow-hover, var(--tsq-shadow-hover, var(--yst-shadow-hover, var(--wp--custom--shadow-hover, 0 0 0 2px #000))));
 }
 
 .sponsor-manager-grid a.sponsor-manager-grid__item:focus-visible {
-	outline: 3px solid currentColor;
+	outline: 3px solid #087fff;
 	outline-offset: 3px;
 }
 
@@ -84,7 +97,9 @@
 	}
 
 	.sponsor-manager-grid a.sponsor-manager-grid__item:hover,
-	.sponsor-manager-grid a.sponsor-manager-grid__item:focus {
+	.sponsor-manager-grid a.sponsor-manager-grid__item:focus-visible,
+	.sponsor-manager-grid__slot.is-swapping {
 		transform: none;
+		opacity: 1;
 	}
 }

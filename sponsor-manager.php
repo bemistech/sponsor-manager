@@ -6,7 +6,7 @@
  * Author URI: https://bemistech.com
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Version: 1.5.2
+ * Version: 1.5.3
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Text Domain: sponsor-manager
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SPONSOR_MANAGER_VERSION', '1.5.2' );
+define( 'SPONSOR_MANAGER_VERSION', '1.5.3' );
 define( 'SPONSOR_MANAGER_FILE', __FILE__ );
 define( 'SPONSOR_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SPONSOR_MANAGER_URL', plugin_dir_url( __FILE__ ) );

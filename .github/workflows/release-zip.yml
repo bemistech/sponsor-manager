@@ -8,7 +8,7 @@ on:
       tag:
         description: Release tag to upload
         required: true
-        default: "1.5.2"
+        default: "1.5.3"
 
 permissions:
   contents: write

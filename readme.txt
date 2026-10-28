@@ -3,7 +3,7 @@ Contributors: bemistech
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,6 +16,11 @@ Sponsor Manager stores sponsor ads as a custom post type, assigns them to placem
 Updates are delivered from updates.bemistech.com.
 
 == Changelog ==
+
+= 1.5.3 =
+* Sponsor cards have no border unless a custom border is saved.
+* Hover uses the theme's 2px ring instead of a larger offset shadow.
+* Ad rotation pauses while the grid is hovered, focused, hidden, or reduced motion is on.
 
 = 1.5.2 =
 * Checks for updates on updates.bemistech.com and stores a license key on the Sponsor Manager License tab.
