@@ -22,6 +22,7 @@ class Lifecycle {
 	public static function register() {
 		add_action( 'init', array( __CLASS__, 'maybe_schedule_cron' ) );
 		add_action( 'init', array( __CLASS__, 'maybe_flag_native_types' ), 4 );
+		add_action( 'init', array( __CLASS__, 'maybe_flag_private_types' ), 4 );
 		add_action( 'init', array( __CLASS__, 'maybe_flush_rewrites' ), 999 );
 	}
 
@@ -61,6 +62,17 @@ class Lifecycle {
 		}
 		update_option( 'sponsor_manager_flush_rewrite_rules', 1, false );
 		update_option( 'sponsor_manager_native_types_v1', 1, false );
+	}
+
+	/**
+	 * Flush once so retired public sponsor URLs drop out of the rewrite rules.
+	 */
+	public static function maybe_flag_private_types() {
+		if ( get_option( 'sponsor_manager_private_types_v1' ) ) {
+			return;
+		}
+		update_option( 'sponsor_manager_flush_rewrite_rules', 1, false );
+		update_option( 'sponsor_manager_private_types_v1', 1, false );
 	}
 
 	/**

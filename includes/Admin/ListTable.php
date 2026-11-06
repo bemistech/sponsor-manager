@@ -40,7 +40,6 @@ class ListTable {
 			if ( 'title' === $key ) {
 				$new['sponsor_name']  = __( 'Sponsor', 'sponsor-manager' );
 				$new['placements']    = __( 'Placement(s)', 'sponsor-manager' );
-				$new['categories']    = __( 'Category Target', 'sponsor-manager' );
 				$new['status']        = __( 'Status', 'sponsor-manager' );
 				$new['sponsor_dates'] = __( 'Runs', 'sponsor-manager' );
 			}
@@ -65,13 +64,6 @@ class ListTable {
 				} else {
 					echo '<em>' . esc_html__( 'none assigned', 'sponsor-manager' ) . '</em>';
 				}
-				break;
-
-			case 'categories':
-				$terms = get_the_terms( $post_id, 'category' );
-				echo ( $terms && ! is_wp_error( $terms ) )
-					? esc_html( implode( ', ', wp_list_pluck( $terms, 'name' ) ) )
-					: esc_html__( 'All categories', 'sponsor-manager' );
 				break;
 
 			case 'status':

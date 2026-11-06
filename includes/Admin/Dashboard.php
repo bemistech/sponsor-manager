@@ -177,7 +177,6 @@ class Dashboard {
 			<li><strong>Create a Placement</strong> from the Placements tab. A specific placement also includes ads assigned to <em>Everywhere</em>. Use Everywhere for ads that should appear in every block.</li>
 			<li><strong>Schedule it.</strong> Leave the start date blank to go live immediately, and the end date blank to run indefinitely. The ad moves through Scheduled → Active → Expired automatically based on today\'s date — no manual cleanup required.</li>
 			<li><strong>Set a priority</strong> to control ordering when a placement has more than one active sponsor; higher numbers are shown first (and more often), with random rotation among ties.</li>
-			<li><strong>Target by category</strong> (optional) by assigning post categories to the ad, the same as you would a normal post — it will then only serve on single posts/pages within those categories. Leave it uncategorized to serve everywhere.</li>
 			<li><strong>Pause anytime</strong> with the "Paused (manual override)" checkbox to instantly pull an ad from rotation, regardless of its scheduled dates.</li>
 			<li><strong>Place ads on the site</strong> using the <em>Sponsors</em> block. Choose a placement, horizontal or vertical, and how many ads to show. Extra ads rotate in every two minutes (oldest slots first). The block is in the inserter under Widgets.</li>
 			<li><strong>Set global styles</strong> on the Styles tab (border radius, border, shadow). Individual blocks use those defaults unless you turn on a per-block override.</li>

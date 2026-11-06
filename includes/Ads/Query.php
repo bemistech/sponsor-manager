@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use SponsorManager\Constants;
 
 /**
- * Query published ads that are in date, not paused, and match category context.
+ * Query published ads that are in date, not paused, and assigned to a placement.
  */
 class Query {
 
@@ -40,30 +40,16 @@ class Query {
 	 * Eligible ads for a block placement, ordered by priority.
 	 *
 	 * @param string $placement_slug Placement term slug.
-	 * @param array  $args           Optional category_id and limit.
+	 * @param array  $args           Optional limit.
 	 * @return array<int, array<string, mixed>>
 	 */
 	public static function get_ads( $placement_slug, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'category_id' => 0,
-				'limit'       => 0,
+				'limit' => 0,
 			)
 		);
-
-		if ( ! $args['category_id'] ) {
-			$queried = get_queried_object();
-			if ( $queried instanceof \WP_Post && ! empty( $queried->ID ) ) {
-				$cats = get_the_category( $queried->ID );
-				if ( $cats ) {
-					$args['category_id'] = wp_list_pluck( $cats, 'term_id' );
-				}
-			} elseif ( $queried instanceof \WP_Term && 'category' === $queried->taxonomy ) {
-				$args['category_id'] = array( $queried->term_id );
-			}
-		}
-		$context_categories = array_map( 'intval', (array) $args['category_id'] );
 
 		$query = new \WP_Query(
 			array(
@@ -96,11 +82,6 @@ class Query {
 				continue;
 			}
 			if ( $end && $today > $end ) {
-				continue;
-			}
-
-			$ad_categories = wp_get_post_terms( $post->ID, 'category', array( 'fields' => 'ids' ) );
-			if ( ! empty( $ad_categories ) && ! array_intersect( $ad_categories, $context_categories ) ) {
 				continue;
 			}
 
