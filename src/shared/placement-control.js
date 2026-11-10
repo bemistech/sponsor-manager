@@ -202,7 +202,7 @@ export default function PlacementControl( { value, onChange } ) {
 	return (
 		<>
 			<SelectControl
-				label={ __( 'Sponsor placement', 'sponsor-manager' ) }
+				label={ __( 'Placement', 'sponsor-manager' ) }
 				value={ value }
 				options={ options }
 				onChange={ ( next ) => {

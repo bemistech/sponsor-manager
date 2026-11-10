@@ -1,12 +1,16 @@
-import { __ } from '@wordpress/i18n';
+import { __, sprintf, _n } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import {
 	Disabled,
+	ExternalLink,
 	PanelBody,
 	Placeholder,
 	RadioControl,
 	RangeControl,
+	Spinner,
 } from '@wordpress/components';
+import { useEffect, useState } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
 import ServerSideRender from '@wordpress/server-side-render';
 import PlacementControl from '../shared/placement-control';
 import StyleControls from '../shared/style-controls';
@@ -26,6 +30,61 @@ function resolvedOrientation( attributes ) {
 		return attributes.orientation;
 	}
 	return attributes.layout === 'vertical' ? 'vertical' : 'horizontal';
+}
+
+function PlacementSummary( { slug } ) {
+	const [ summary, setSummary ] = useState( null );
+	const [ state, setState ] = useState( 'loading' );
+
+	useEffect( () => {
+		let cancelled = false;
+		setState( 'loading' );
+		apiFetch( {
+			path: `/sponsor-manager/v1/placements/${ encodeURIComponent( slug ) }/summary`,
+		} )
+			.then( ( data ) => {
+				if ( cancelled ) {
+					return;
+				}
+				setSummary( data );
+				setState( 'ready' );
+			} )
+			.catch( () => {
+				if ( ! cancelled ) {
+					setState( 'empty' );
+				}
+			} );
+
+		return () => {
+			cancelled = true;
+		};
+	}, [ slug ] );
+
+	if ( 'loading' === state ) {
+		return <Spinner />;
+	}
+
+	const count = summary && Number.isFinite( summary.count ) ? summary.count : 0;
+	const name = summary?.name || slug;
+	const href = summary?.admin_url || 'admin.php?page=sponsor_manager';
+
+	return (
+		<p className="sponsor-manager-editor__placement">
+			{ sprintf(
+				/* translators: 1: placement name, 2: eligible ad count. */
+				__( '%1$s · %2$s', 'sponsor-manager' ),
+				name,
+				sprintf(
+					/* translators: %d: number of eligible ads. */
+					_n( '%d eligible ad', '%d eligible ads', count, 'sponsor-manager' ),
+					count
+				)
+			) }{ ' · ' }
+			<ExternalLink href={ href }>
+				{ __( 'Sponsor Manager', 'sponsor-manager' ) }
+			</ExternalLink>
+		</p>
+	);
 }
 
 export default function Edit( { attributes, setAttributes } ) {
@@ -107,14 +166,27 @@ export default function Edit( { attributes, setAttributes } ) {
 					/>
 				</Placeholder>
 			) : (
-				<Disabled>
-					<ServerSideRender
-						block={ metadata.name }
-						attributes={ attributes }
-						httpMethod="POST"
-						skipBlockSupportAttributes
-					/>
-				</Disabled>
+				<>
+					<PlacementSummary slug={ placement } />
+					<Disabled>
+						<ServerSideRender
+							block={ metadata.name }
+							attributes={ attributes }
+							httpMethod="POST"
+							skipBlockSupportAttributes
+							EmptyResponsePlaceholder={ () => (
+								<Placeholder
+									icon="megaphone"
+									label={ metadata.title }
+									instructions={ __(
+										'No ads are eligible for this Placement yet.',
+										'sponsor-manager'
+									) }
+								/>
+							) }
+						/>
+					</Disabled>
+				</>
 			) }
 		</div>
 	);

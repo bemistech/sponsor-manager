@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use SponsorManager\Ads\PlacementUsage;
 use SponsorManager\Ads\Placements;
+use SponsorManager\Ads\Query;
 use SponsorManager\Constants;
 
 /**
@@ -43,6 +44,23 @@ class PlacementsController {
 						'type'              => 'string',
 						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			'sponsor-manager/v1',
+			'/placements/(?P<slug>[a-z0-9_-]+)/summary',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'summary' ),
+				'permission_callback' => array( __CLASS__, 'can_edit' ),
+				'args'                => array(
+					'slug' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_key',
 					),
 				),
 			)
@@ -223,6 +241,33 @@ class PlacementsController {
 
 		$fresh = get_term( $term->term_id, Constants::TAXONOMY );
 		return rest_ensure_response( self::payload( $fresh, false ) );
+	}
+
+	/**
+	 * Placement name, eligible ad count, and a link to Sponsor Manager.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function summary( \WP_REST_Request $request ) {
+		$slug = sanitize_key( (string) $request->get_param( 'slug' ) );
+		$term = '' !== $slug ? get_term_by( 'slug', $slug, Constants::TAXONOMY ) : false;
+		if ( ! $term || is_wp_error( $term ) ) {
+			return new \WP_Error(
+				'sponsor_manager_not_found',
+				__( 'That Placement could not be found.', 'sponsor-manager' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return rest_ensure_response(
+			array(
+				'name'      => $term->name,
+				'slug'      => $term->slug,
+				'count'     => count( Query::get_ads( $term->slug ) ),
+				'admin_url' => admin_url( 'admin.php?page=' . Constants::MENU_SLUG ),
+			)
+		);
 	}
 
 	/**
