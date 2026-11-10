@@ -35,6 +35,35 @@ function sponsor_manager_is_protected_placement( $term ) {
 }
 
 /**
+ * Linked list of pages and templates that contain a placement.
+ *
+ * @param array<int, array<string, mixed>> $used Usage rows.
+ * @return string
+ */
+function sponsor_manager_placement_usage_html( $used ) {
+	if ( empty( $used ) ) {
+		return esc_html__( 'Not used by a block', 'sponsor-manager' );
+	}
+
+	$links = array();
+	foreach ( $used as $row ) {
+		$label = sprintf(
+			/* translators: 1: post title, 2: post type singular name. */
+			__( '%1$s (%2$s)', 'sponsor-manager' ),
+			$row['title'],
+			$row['type_label']
+		);
+		if ( ! empty( $row['edit_url'] ) ) {
+			$links[] = '<a href="' . esc_url( $row['edit_url'] ) . '">' . esc_html( $label ) . '</a>';
+		} else {
+			$links[] = esc_html( $label );
+		}
+	}
+
+	return implode( ', ', $links );
+}
+
+/**
  * Convert stored Ymd to an HTML date input value.
  *
  * @param string $value Ymd date.
@@ -456,7 +485,13 @@ function sponsor_manager_render_ad_form( $post = null ) {
 						<?php foreach ( $placements as $placement ) : ?>
 							<label style="display:block;margin-bottom:4px;">
 								<input type="checkbox" name="sponsor_ad[placements][]" value="<?php echo esc_attr( (string) $placement->term_id ); ?>" <?php checked( in_array( (int) $placement->term_id, $selected, true ) ); ?> />
-								<?php echo esc_html( $placement->name ); ?>
+								<?php
+								$placement_label = $placement->name;
+								if ( ! \SponsorManager\Ads\PlacementUsage::is_active( $placement ) ) {
+									$placement_label .= ' (' . __( 'inactive', 'sponsor-manager' ) . ')';
+								}
+								echo esc_html( $placement_label );
+								?>
 							</label>
 						<?php endforeach; ?>
 					</fieldset>
@@ -530,22 +565,29 @@ function sponsor_manager_render_placements_tab() {
 	}
 
 	$terms = get_terms( array( 'taxonomy' => 'sponsor_placement', 'hide_empty' => false ) );
+	$usage = \SponsorManager\Ads\PlacementUsage::sync_all();
 	echo '<h2>' . esc_html__( 'All Placements', 'sponsor-manager' ) . '</h2>';
 	echo '<table class="widefat striped"><thead><tr>';
 	echo '<th>' . esc_html__( 'Name', 'sponsor-manager' ) . '</th>';
 	echo '<th>' . esc_html__( 'Slug', 'sponsor-manager' ) . '</th>';
+	echo '<th>' . esc_html__( 'Status', 'sponsor-manager' ) . '</th>';
+	echo '<th>' . esc_html__( 'Used by', 'sponsor-manager' ) . '</th>';
 	echo '<th>' . esc_html__( 'Ads', 'sponsor-manager' ) . '</th>';
 	echo '<th>' . esc_html__( 'Actions', 'sponsor-manager' ) . '</th>';
 	echo '</tr></thead><tbody>';
 
 	if ( is_wp_error( $terms ) || empty( $terms ) ) {
-		echo '<tr><td colspan="4"><em>' . esc_html__( 'No placements yet.', 'sponsor-manager' ) . '</em></td></tr>';
+		echo '<tr><td colspan="6"><em>' . esc_html__( 'No placements yet.', 'sponsor-manager' ) . '</em></td></tr>';
 	} else {
 		foreach ( $terms as $placement ) {
 			$edit_url = sponsor_manager_dashboard_url( array( 'tab' => 'placements', 'placement' => $placement->term_id ) );
+			$used     = isset( $usage[ $placement->slug ] ) ? $usage[ $placement->slug ] : array();
+			$active   = sponsor_manager_is_protected_placement( $placement ) || ! empty( $used );
 			echo '<tr>';
 			printf( '<td><a href="%s"><strong>%s</strong></a></td>', esc_url( $edit_url ), esc_html( $placement->name ) );
 			echo '<td><code>' . esc_html( $placement->slug ) . '</code></td>';
+			echo '<td>' . esc_html( $active ? __( 'Active', 'sponsor-manager' ) : __( 'Inactive', 'sponsor-manager' ) ) . '</td>';
+			echo '<td>' . wp_kses_post( sponsor_manager_placement_usage_html( $used ) ) . '</td>';
 			echo '<td>' . esc_html( (string) $placement->count ) . '</td>';
 			echo '<td>';
 			printf( '<a href="%s">%s</a>', esc_url( $edit_url ), esc_html__( 'Edit', 'sponsor-manager' ) );

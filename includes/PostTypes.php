@@ -26,6 +26,9 @@ class PostTypes {
 		add_action( 'init', array( __CLASS__, 'detach_categories' ), 99 );
 		add_filter( 'use_block_editor_for_post_type', array( __CLASS__, 'disable_block_editor' ), 10, 2 );
 		add_filter( 'enter_title_here', array( __CLASS__, 'title_placeholder' ), 10, 2 );
+		add_action( 'template_redirect', array( __CLASS__, 'block_public_placement_urls' ), 0 );
+		add_filter( 'redirect_canonical', array( __CLASS__, 'block_placement_canonical' ), 0, 2 );
+		add_filter( 'do_redirect_guess_404_permalink', array( __CLASS__, 'skip_placement_guess' ) );
 		PlacementTermsController::register();
 	}
 
@@ -108,6 +111,94 @@ class PostTypes {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Front-end placement URLs are not archives. Query strings would otherwise show the homepage,
+	 * and a missed pretty URL can be guessed into a post redirect.
+	 */
+	public static function block_public_placement_urls() {
+		if ( ! self::is_public_placement_request() ) {
+			return;
+		}
+
+		global $wp_query;
+		if ( $wp_query instanceof \WP_Query ) {
+			$wp_query->set_404();
+		}
+
+		status_header( 404 );
+		nocache_headers();
+	}
+
+	/**
+	 * Stop canonical redirects for placement URLs, including 404 guesses.
+	 *
+	 * @param string|false $redirect_url  Proposed redirect.
+	 * @param string       $requested_url Requested URL.
+	 * @return string|false
+	 */
+	public static function block_placement_canonical( $redirect_url, $requested_url ) {
+		unset( $requested_url );
+
+		if ( self::is_public_placement_request() ) {
+			return false;
+		}
+
+		return $redirect_url;
+	}
+
+	/**
+	 * Do not guess a post from a placement path such as /sponsor_placement/everywhere/.
+	 *
+	 * @param bool $do_redirect Whether WordPress should guess a 404 redirect.
+	 * @return bool
+	 */
+	public static function skip_placement_guess( $do_redirect ) {
+		if ( self::is_public_placement_request() ) {
+			return false;
+		}
+
+		return $do_redirect;
+	}
+
+	/**
+	 * Whether this front-end request is aimed at a sponsor placement URL.
+	 *
+	 * @return bool
+	 */
+	private static function is_public_placement_request() {
+		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return false;
+		}
+
+		$taxonomy = Constants::TAXONOMY;
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Routing a public read, not a form submission.
+		if ( isset( $_GET[ $taxonomy ] ) ) {
+			return true;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Routing a public read, not a form submission.
+		if ( isset( $_GET['taxonomy'] ) && $taxonomy === sanitize_key( wp_unslash( $_GET['taxonomy'] ) ) ) {
+			return true;
+		}
+
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$path = is_string( $uri ) ? wp_parse_url( $uri, PHP_URL_PATH ) : '';
+		$path = is_string( $path ) ? trim( $path, '/' ) : '';
+		if ( '' === $path ) {
+			return false;
+		}
+
+		$prefixes = array( $taxonomy, str_replace( '_', '-', $taxonomy ) );
+		foreach ( $prefixes as $prefix ) {
+			if ( $path === $prefix || 0 === strpos( $path, $prefix . '/' ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

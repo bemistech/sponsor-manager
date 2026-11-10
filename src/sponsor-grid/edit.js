@@ -97,7 +97,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					icon="megaphone"
 					label={ metadata.title }
 					instructions={ __(
-						'Choose a sponsor placement, then set horizontal or vertical and how many ads to show.',
+						'Choose a placement or create one with a name, then set horizontal or vertical and how many ads to show.',
 						'sponsor-manager'
 					) }
 				>

@@ -19,8 +19,10 @@ use SponsorManager\Admin\ListTable;
 use SponsorManager\Admin\Menu;
 use SponsorManager\Admin\StylesPage;
 use SponsorManager\Ads\Placements;
+use SponsorManager\Ads\PlacementUsage;
 use SponsorManager\Ads\Status;
 use SponsorManager\Blocks\Registrar as BlockRegistrar;
+use SponsorManager\Rest\PlacementsController;
 
 /**
  * Single entry point after plugins_loaded.
@@ -52,6 +54,8 @@ class Plugin {
 		PostTypes::register();
 		AcfHandoff::register();
 		Placements::register();
+		PlacementUsage::register();
+		PlacementsController::register();
 		Status::register();
 		BlockRegistrar::register();
 		if ( is_readable( SPONSOR_MANAGER_PATH . 'includes/Updater.php' ) ) {
