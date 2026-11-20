@@ -3,7 +3,7 @@ Contributors: bemistech
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.5
+Stable tag: 1.5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,6 +16,9 @@ Sponsor Manager stores sponsor ads as a custom post type, assigns them to placem
 Updates are delivered from updates.bemistech.com.
 
 == Changelog ==
+
+= 1.5.6 =
+* Plugin Check fixes: the license key and request URI are sanitized.
 
 = 1.5.3 =
 * Sponsor cards have no border unless a custom border is saved.
