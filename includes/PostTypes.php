@@ -184,7 +184,7 @@ class PostTypes {
 			return true;
 		}
 
-		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$path = is_string( $uri ) ? wp_parse_url( $uri, PHP_URL_PATH ) : '';
 		$path = is_string( $path ) ? trim( $path, '/' ) : '';
 		if ( '' === $path ) {
@@ -225,6 +225,7 @@ class PostTypes {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
+				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- One-time admin migration; it must see every ad, including ones other query filters hide.
 				'suppress_filters'       => true,
 				'orderby'                => 'ID',
 				'order'                  => 'ASC',

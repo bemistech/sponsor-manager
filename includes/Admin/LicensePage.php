@@ -38,7 +38,7 @@ class LicensePage {
 		}
 		check_admin_referer( 'sponsor_manager_save_license' );
 
-		$key   = isset( $_POST['sponsor_manager_license_key'] ) && is_string( $_POST['sponsor_manager_license_key'] ) ? wp_unslash( $_POST['sponsor_manager_license_key'] ) : '';
+		$key   = isset( $_POST['sponsor_manager_license_key'] ) && is_string( $_POST['sponsor_manager_license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['sponsor_manager_license_key'] ) ) : '';
 		$saved = License::save( $key, ! empty( $_POST['sponsor_manager_license_clear'] ) );
 		$arg   = is_wp_error( $saved ) ? 'license-invalid' : 'license-saved';
 		wp_safe_redirect( add_query_arg( array( 'page' => Constants::MENU_SLUG, 'tab' => 'license', 'updated' => $arg ), admin_url( 'admin.php' ) ) );
